@@ -19,7 +19,8 @@ public class App {
 
 	public static void main(String[] args) {
 		//test
-		
+
+
 		if(JOptionPane.showConfirmDialog(null, "Are you the host?") == 0) {
 			new GameServer();
 			System.out.println("Starting Server ");
@@ -38,6 +39,7 @@ public class App {
 			
 			Timer t = new Timer(50, gui);
 			t.start();
-		} 
+		}
+
 	}
 } 

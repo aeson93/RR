@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
+import java.net.*;
 import java.util.ArrayList;
 
 public class GameServer{
@@ -53,7 +51,7 @@ public class GameServer{
 					} catch (ClassNotFoundException e) {
 						e.printStackTrace();
 					} catch(java.net.SocketException e1) {
-						System.out.println("Client has DC'd!");
+						System.out.println("Client is disconnected!");
 						outputs.remove(dos);
 						run = false;
 						break;
@@ -135,42 +133,20 @@ public class GameServer{
 		}
 	}
 	
-	public static String getIpAddress() { 
-	        URL myIP;
-	        try {
-	            myIP = new URL("http://api.externalip.net/ip/");
+	public static String getIpAddress() {
+			try {
+				InetAddress inetAddress = InetAddress.getLocalHost();
+				String hostName = inetAddress.getHostName(); //Get Host Name
+				String ipAddress = inetAddress.getHostAddress(); // Get IP Address
+				return ipAddress;
 
-	            BufferedReader in = new BufferedReader(
-	                    new InputStreamReader(myIP.openStream())
-	                    );
-	            return in.readLine();
-	        } catch (Exception e) 
-	        {
-	            try 
-	            {
-	                myIP = new URL("http://myip.dnsomatic.com/");
+		} catch (UnknownHostException e) {
+				e.printStackTrace();
+							}
 
-	                BufferedReader in = new BufferedReader(
-	                        new InputStreamReader(myIP.openStream())
-	                        );
-	                return in.readLine();
-	            } catch (Exception e1) 
-	            {
-	                try {
-	                    myIP = new URL("http://icanhazip.com/");
 
-	                    BufferedReader in = new BufferedReader(
-	                            new InputStreamReader(myIP.openStream())
-	                            );
-	                    return in.readLine();
-	                } catch (Exception e2) {
-	                    e2.printStackTrace(); 
-	                }
-	            }
-	        }
+		return null;
+	}}
 
-	    return null;
-	}
-}
 
 

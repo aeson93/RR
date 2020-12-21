@@ -2,15 +2,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
@@ -27,12 +21,14 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 
+
 @SuppressWarnings("serial")
-public class GUI  extends JPanel implements Runnable, ActionListener{
+public  class GUI  extends JPanel implements Runnable, ActionListener {
+
 
 	// server
 	private String ip = "localhost";
-	private int port = 22222;
+	private int port = 1337;
 	private Thread thread;
 	private Socket socket;
 	ObjectOutputStream dos;
@@ -107,47 +103,20 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 	
 	Color nameColor = Color.BLACK; //textColor
 	Color reverse = Color.WHITE; //textBorderColor
-	
+
+
 
 	public GUI(int screenWidth, int screenHeight) {
-		
-		//login setup	
-		ip = JOptionPane.showInputDialog(null,
-				 "What is the host IP?",
-				 "",
-				 JOptionPane.QUESTION_MESSAGE);
-		
-		myName = JOptionPane.showInputDialog(null,
-				 "What is your name?",
-				 "Set to viewer token",
-				 JOptionPane.QUESTION_MESSAGE).toUpperCase();
-		
-		if(myName.equals("DM")) { //DM can see everything
-			DM = true;
-			showTriggers = true;
-			showShadows = true;	
-		}
-		
-		viewer = myName; //Players can see from their token
-				
-		connect();
-		thread = new Thread(this, "MultiplayerRR");
-		thread.start();	
-			
-		// general settings
-		this.sW = screenWidth;
-		this.sH = screenHeight;
-		this.H = sH / 15;
-		this.Hx = 0;
-		
-		font = new Font("Monospaced", Font.BOLD, 18 * (sW / 1920));
+
+		Connection_Interface connection = new Login() ;
+		connection.login();
 
 		setBackground(Color.BLACK);
 		setLayout(null);
 
 		// import UI images
 		ImageIO.setUseCache(false);
-		try {	
+		try {
 			fieldImg = ImageIO.read(GUI.class.getResource("images/feld.png"));
 			block = ImageIO.read(GUI.class.getResource("images/deleteWindow.png"));
 			go = ImageIO.read(GUI.class.getResource("images/go.png"));
@@ -168,7 +137,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 			e3.printStackTrace();
 		}
 
-//		importFollowers();	
+//		importFollowers();
 
 		// text input field
 		text.setBounds(23 * H, 0, 4 * H, H);
@@ -180,14 +149,14 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 				}
 				else if(text.getText().equalsIgnoreCase("FREE") && DM) { //player input is unrestricted
 					try {
-						String message = "UNRESTRICT";					
+						String message = "UNRESTRICT";
 						dos.writeObject(message);
 						dos.flush();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
 				}
-				else if(!unrestricted) { 
+				else if(!unrestricted) {
 					char[] wait = "wait for other players".toCharArray();
 					for(int i = 0; i < wait.length; i++){
 						if (Math.random() > 0.5) {
@@ -198,8 +167,8 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 				}
 			}
 		});
-		add(text);	
-		
+		add(text);
+
 		// roll modifier input field
 		modifier.setBounds((int) (26 * H), (int) (4.5 * H), H/2, H/2);
 		modifier.setFont(font);
@@ -209,7 +178,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 			}
 		});
 		add(modifier);
-		
+
 		// keyboard inputs
 		Action drag = new AbstractAction() { //move textfield
 			public void actionPerformed(ActionEvent e) {
@@ -222,7 +191,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 		};
 		this.getInputMap().put(KeyStroke.getKeyStroke("T"), "T");
 		this.getActionMap().put("T", drag);
-		
+
 		Action escape = new AbstractAction() { //exit game
 			public void actionPerformed(ActionEvent e) {
 				if(JOptionPane.showConfirmDialog(null, "Exit?") == 0) {
@@ -268,7 +237,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 		};
 		this.getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "RIGHT");
 		this.getActionMap().put("RIGHT", right);
-		
+
 		Action ping = new AbstractAction() { //set ping
 			public void actionPerformed(ActionEvent e) {
 				if (unrestricted) {
@@ -279,7 +248,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 		};
 		this.getInputMap().put(KeyStroke.getKeyStroke("P"), "P");
 		this.getActionMap().put("P", ping);
-		
+
 		Action q = new AbstractAction() { //compare distance before/after move
 			public void actionPerformed(ActionEvent e) {
 				if(moveTo == null && lift != 1000000) {
@@ -318,20 +287,20 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 				if(lift != 1000000 && DM) {
 //					patrols.add(new Patrol(stuff.get(lift)));
 					text.setText("SETTING PATROL");
-					
+
 					try {
 						String message = "PATROL_" + lift;
 						dos.writeObject(message);
 						dos.flush();
 					} catch (IOException e1) {
 					}
-					
+
 				}
 			}
 		};
 		this.getInputMap().put(KeyStroke.getKeyStroke("O"), "O");
 		this.getActionMap().put("O", o);
-		
+
 		Action i = new AbstractAction() { //patrol mode
 			public void actionPerformed(ActionEvent e) {
 				if(DM) {
@@ -362,22 +331,22 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 							(moveTo.yPos + (moveTo.ySize / 2)) / zoom - yInset / zoom - e.getY(),
 							2);
 					double z = Math.sqrt(x + y);
-					
+
 					DecimalFormat df = new DecimalFormat("#.##");
-										
+
 					text.setText("Distance = " + df.format(z / H));
 				}
 				if(moveMenu) { //move menu to new origin
 					text.setText("Moving by " + (23 * H - e.getX()) );
 				}
 			}
-			
+
 			@Override
 			public void mouseDragged(MouseEvent e) {
 
 			}
 		});
-		
+
 		// on-click listener
 		addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
@@ -388,7 +357,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 					Hx = 23 * H - e.getX();
 					moveMenu = false;
 				}
-				
+
 				if(unrestricted) {
 					requestFocusInWindow();
 
@@ -708,7 +677,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 					text.setText(new String(wait));
 				}
 			}
-		});		
+		});
 	}
 
 	protected void command(String input) { //interpret text input
@@ -1572,7 +1541,7 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
 				myInit = second;
 			}
 		}
-		return Integer.toString(myInit) + " + " + Integer.toString(bonus) + " = " + Integer.toString(myInit + bonus);	
+		return Integer.toString(myInit) + " + " + Integer.toString(bonus) + " = " + Integer.toString(myInit + bonus);
 	}
 	
 	public void importFollowers() {
@@ -1617,9 +1586,10 @@ public class GUI  extends JPanel implements Runnable, ActionListener{
         }
         return tinted;
     }
-   
-    
-    class imageLoader implements Runnable { //loads images from URL
+
+
+
+	class imageLoader implements Runnable { //loads images from URL
     	private Thread t;
     	String inputName;
     	
